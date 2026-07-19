@@ -3,6 +3,11 @@ import { Link, useParams } from "react-router-dom";
 import { api } from "../api";
 import { useAuth } from "../AuthContext";
 
+function Avatar({ username }) {
+    const initial = (username || "?").charAt(0).toUpperCase();
+    return <div className="member-avatar">{initial}</div>;
+}
+
 export default function OrgDetail() {
     const { orgId } = useParams();
     const { user } = useAuth();
@@ -33,7 +38,6 @@ export default function OrgDetail() {
         }
     }
 
-    // Best-effort fetch for username autocomplete; failure is non-fatal.
     useEffect(() => {
         api.listUsers()
             .then((res) => setUsernames((res.users || []).map((u) => u.username)))
@@ -88,38 +92,72 @@ export default function OrgDetail() {
     }
 
     if (err && !org) return <div className="page container"><div className="error">{err}</div></div>;
-    if (!org) return <div className="page container muted">Loading...</div>;
+    if (!org) return (
+        <div className="page container">
+            <div className="empty-state">
+                <div className="empty-state-icon">⏳</div>
+                <p className="muted">Loading organization...</p>
+            </div>
+        </div>
+    );
+
+    const initial = (org.title || "?").charAt(0).toUpperCase();
 
     return (
         <div className="page">
             <header className="topbar">
                 <Link to="/" className="back">← Dashboard</Link>
                 <h1>{org.title}</h1>
+                <div className="spacer" />
+                <div className="user-chip">
+                    <div className="user-avatar">{(user?.username || "?").charAt(0).toUpperCase()}</div>
+                    <span>{user?.username}</span>
+                </div>
             </header>
 
             <main className="container">
-                {err && <div className="error">{err}</div>}
+                <div className="page-header">
+                    <div>
+                        <h1 className="page-title">{org.title}</h1>
+                        <p className="page-subtitle">
+                            {org.description || "No description provided."}
+                        </p>
+                    </div>
+                </div>
 
-                <section className="card">
-                    <h2>Description</h2>
-                    <p className="muted">{org.description || "No description."}</p>
-                </section>
+                {err && <div className="error">{err}</div>}
 
                 {isAdmin && (
                     <section className="card">
-                        <h2>Members ({org.members?.length || 0})</h2>
+                        <h2>
+                            Members
+                            <span className="count-pill">{org.members?.length || 0}</span>
+                        </h2>
                         <ul className="member-list">
                             <li>
-                                <span>{org.admin?.username} (admin)</span>
+                                <div className="member-info">
+                                    <Avatar username={org.admin?.username} />
+                                    <div>
+                                        <div className="member-name">{org.admin?.username}</div>
+                                        <div className="member-role admin">Admin</div>
+                                    </div>
+                                </div>
                             </li>
                             {(org.members || []).map((m) => (
                                 <li key={m._id || m.id}>
-                                    <span>{m.username} (member)</span>
+                                    <div className="member-info">
+                                        <Avatar username={m.username} />
+                                        <div>
+                                            <div className="member-name">{m.username}</div>
+                                            <div className="member-role">Member</div>
+                                        </div>
+                                    </div>
                                     <button
-                                        className="ghost danger"
+                                        className="ghost danger icon"
                                         onClick={() => onRemoveMember(m.username)}
+                                        title={`Remove ${m.username}`}
                                     >
-                                        Remove
+                                        ✕
                                     </button>
                                 </li>
                             ))}
@@ -128,7 +166,7 @@ export default function OrgDetail() {
                         <form onSubmit={onAddMember} className="row-form">
                             <input
                                 list="username-suggestions"
-                                placeholder="Username to add"
+                                placeholder="Add member by username"
                                 value={memberUsername}
                                 onChange={(e) => setMemberUsername(e.target.value)}
                                 required
@@ -138,7 +176,7 @@ export default function OrgDetail() {
                                     <option key={u} value={u} />
                                 ))}
                             </datalist>
-                            <button type="submit" disabled={adding}>
+                            <button type="submit" className="primary" disabled={adding}>
                                 {adding ? "Adding..." : "Add member"}
                             </button>
                         </form>
@@ -146,21 +184,33 @@ export default function OrgDetail() {
                 )}
 
                 <section className="card">
-                    <h2>Boards ({boards.length})</h2>
+                    <h2>
+                        Boards
+                        <span className="count-pill">{boards.length}</span>
+                    </h2>
+
                     {boards.length === 0 ? (
-                        <p className="muted">No boards yet.</p>
+                        <div className="empty-state">
+                            <div className="empty-state-icon">🗂️</div>
+                            <p className="muted">No boards yet — create the first one below.</p>
+                        </div>
                     ) : (
                         <ul className="board-list">
                             {boards.map((b) => (
                                 <li key={b._id}>
-                                    <Link to={`/board/${b._id}`}>{b.title}</Link>
+                                    <Link to={`/board/${b._id}`} className="board-link">
+                                        <div className="board-link-title">{b.title}</div>
+                                        <div className="board-link-desc">
+                                            {b.description || "No description"}
+                                        </div>
+                                    </Link>
                                 </li>
                             ))}
                         </ul>
                     )}
 
-                    {isAdmin ? (
-                        <form onSubmit={onCreateBoard} className="row-form">
+                    {isAdmin && (
+                        <form onSubmit={onCreateBoard} className="row-form" style={{ marginTop: 16 }}>
                             <input
                                 placeholder="New board title"
                                 value={boardTitle}
@@ -172,11 +222,11 @@ export default function OrgDetail() {
                                 value={boardDesc}
                                 onChange={(e) => setBoardDesc(e.target.value)}
                             />
-                            <button type="submit" disabled={creating}>
+                            <button type="submit" className="primary" disabled={creating}>
                                 {creating ? "Creating..." : "Create board"}
                             </button>
                         </form>
-                    ) : (<></>)}
+                    )}
                 </section>
             </main>
         </div>

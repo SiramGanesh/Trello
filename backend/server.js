@@ -1,3 +1,4 @@
+require("./dnsFix");
 require("dotenv").config({ path: "../.env" });
 const express = require("express");
 const { connectDB } = require("./db");

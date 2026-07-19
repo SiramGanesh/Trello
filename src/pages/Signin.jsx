@@ -28,33 +28,45 @@ export default function Signin() {
 
     return (
         <div className="auth-page">
-            <form className="auth-card" onSubmit={onSubmit}>
-                <h1>Sign in</h1>
-                {err && <div className="error">{err}</div>}
-                <label>
-                    Username
+            <div className="auth-card">
+                <div className="auth-brand">
+                    <div className="auth-logo">T</div>
+                    <div className="auth-brand-text">
+                        <h1>Trello</h1>
+                        <p>Plan. Track. Ship.</p>
+                    </div>
+                </div>
+
+                <h2>Welcome back</h2>
+                <p className="auth-subtitle">Sign in to your workspace</p>
+
+                <form onSubmit={onSubmit}>
+                    {err && <div className="error">{err}</div>}
+                    <label>Username</label>
                     <input
                         value={username}
                         onChange={(e) => setUsername(e.target.value)}
+                        placeholder="your username"
+                        autoFocus
                         required
                     />
-                </label>
-                <label>
-                    Password
+                    <label>Password</label>
                     <input
                         type="password"
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
+                        placeholder="••••••••"
                         required
                     />
-                </label>
-                <button type="submit" disabled={busy}>
-                    {busy ? "Signing in..." : "Sign in"}
-                </button>
-                <p className="muted">
+                    <button type="submit" className="primary" disabled={busy}>
+                        {busy ? "Signing in..." : "Sign in"}
+                    </button>
+                </form>
+
+                <p className="auth-foot">
                     New here? <Link to="/signup">Create an account</Link>
                 </p>
-            </form>
+            </div>
         </div>
     );
 }
