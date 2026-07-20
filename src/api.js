@@ -1,5 +1,5 @@
 // Simple fetch wrapper. Reads token from localStorage; throws on non-2xx.
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3010";
 
 function getToken() {
     return localStorage.getItem("token");
