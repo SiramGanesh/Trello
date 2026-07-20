@@ -3,6 +3,7 @@ require("dotenv").config({ path: "../.env" });
 const express = require("express");
 const { connectDB } = require("./db");
 const endpoints = require("./endpoints");
+const { startKeepAlive } = require("./keepAlive");
 
 const app = express();
 app.use(express.json());
@@ -18,11 +19,20 @@ app.use((req, res, next) => {
     next();
 });
 
+// Health check — used by the keep-alive pinger and by uptime monitors.
+app.get("/health", (_req, res) => {
+    res.json({ status: "ok", uptime: process.uptime() });
+});
+
 connectDB();
 
 app.use("/", endpoints);
 
 const PORT = process.env.PORT;
 app.listen(PORT, () => {
-    console.log(`Server running on http://localhost:${PORT}`);
+    console.log(`Server running on port ${PORT}`);
 });
+
+// Prevent Render free-tier from spinning the service down after 15 min of
+// inactivity. No-op in local dev (NODE_ENV !== "production").
+startKeepAlive();
